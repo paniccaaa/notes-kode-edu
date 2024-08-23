@@ -12,6 +12,7 @@ import (
 	"github.com/paniccaaa/notes-kode-edu/internal/config"
 	"github.com/paniccaaa/notes-kode-edu/internal/http/router"
 	"github.com/paniccaaa/notes-kode-edu/internal/lib/logger"
+	noteservice "github.com/paniccaaa/notes-kode-edu/internal/services/note-service"
 	"github.com/paniccaaa/notes-kode-edu/internal/storage/postgres"
 )
 
@@ -23,10 +24,13 @@ func main() {
 	storage, err := postgres.NewPostgres(cfg.DbURI)
 	if err != nil {
 		log.Error("failed to init storage", slog.String("err", err.Error()))
-		//os.Exit(1)
+		os.Exit(1)
 	}
 
-	router := router.InitRouter(log, storage)
+	defer storage.Db.Close()
+
+	noteService := noteservice.NewNoteService(storage)
+	router := router.InitRouter(log, noteService)
 
 	log.Info("starting notes-kode-edu", slog.String("addr", cfg.Address))
 
@@ -59,8 +63,6 @@ func main() {
 		log.Error("failed to stop server", slog.String("err", err.Error()))
 		return
 	}
-
-	defer storage.Close()
 
 	log.Info("server stopped")
 

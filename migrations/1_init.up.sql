@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS user (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    pass_hash BYTEA NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS note (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT
+);
