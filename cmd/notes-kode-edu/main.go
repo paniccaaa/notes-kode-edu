@@ -12,8 +12,8 @@ import (
 	"github.com/paniccaaa/notes-kode-edu/internal/config"
 	"github.com/paniccaaa/notes-kode-edu/internal/http/router"
 	"github.com/paniccaaa/notes-kode-edu/internal/lib/logger"
-	authService "github.com/paniccaaa/notes-kode-edu/internal/services/auth-service"
-	noteService "github.com/paniccaaa/notes-kode-edu/internal/services/note-service"
+	auth "github.com/paniccaaa/notes-kode-edu/internal/services/auth-service"
+	note "github.com/paniccaaa/notes-kode-edu/internal/services/note-service"
 	"github.com/paniccaaa/notes-kode-edu/internal/storage/postgres"
 )
 
@@ -31,8 +31,8 @@ func main() {
 	defer storage.Db.Close()
 
 	// services
-	noteService := noteService.NewNoteService(storage, log)
-	authService := authService.NewAuthService(storage, log, cfg.TokenTTL)
+	noteService := note.NewNoteService(storage, log)
+	authService := auth.NewAuthService(storage, log, cfg.TokenTTL)
 
 	router := router.InitRouter(log, noteService, authService)
 

@@ -28,20 +28,35 @@ func NewPostgres(dbURI string) (*Storage, error) {
 	return &Storage{Db: db}, nil
 }
 
-// Логика получения заметок из базы данных
 func (s *Storage) GetNotes(ctx context.Context) ([]models.Note, error) {
 	return nil, nil
 }
 
-// Логика создания новой заметки в базе данных
 func (s *Storage) CreateNote(ctx context.Context, note models.Note) (int, error) {
 	return 0, nil
 }
 
 func (s *Storage) SaveUser(ctx context.Context, passHash []byte, email string) (int64, error) {
-	return 0, nil
+	const op = "storage.postgres.SaveUser"
+
+	var id int64
+	query := "INSERT INTO users (email, pass_hash) VALUES ($1, $2) RETURNING id"
+
+	if err := s.Db.QueryRowContext(ctx, query, email, passHash).Scan(&id); err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return id, nil
 }
 
 func (s *Storage) User(ctx context.Context, email string) (models.User, error) {
-	return models.User{ID: 1}, nil
+	const op = "storage.postgres.User"
+
+	var user models.User
+
+	row := s.Db.QueryRowContext(ctx, "SELECT * FROM users WHERE email = $1;", email)
+	if err := row.Scan(&user.ID, &user.Email, &user.PassHash); err != nil {
+		return models.User{}, fmt.Errorf("%s: %w", op, err)
+	}
+	return user, nil
 }
