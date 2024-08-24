@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
 )
 
 const configPath = "./config/local.yaml"
@@ -24,6 +25,11 @@ type HTTPServer struct {
 }
 
 func MustLoad() *Config {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("failed to load .env file: %s", err.Error())
+	}
+
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		log.Fatalf("config file does not exist: %s", configPath)
 	}

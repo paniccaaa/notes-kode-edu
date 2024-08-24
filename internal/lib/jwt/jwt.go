@@ -6,17 +6,11 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/joho/godotenv"
 	"github.com/paniccaaa/notes-kode-edu/internal/domain/models"
 )
 
 func NewToken(user models.User, duration time.Duration) (string, error) {
 	const op = "lib.jwt.NewToken"
-
-	err := godotenv.Load()
-	if err != nil {
-		return "", fmt.Errorf("%s: %w", op, err)
-	}
 
 	token := jwt.New(jwt.SigningMethodHS256)
 
@@ -28,8 +22,31 @@ func NewToken(user models.User, duration time.Duration) (string, error) {
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	return tokenString, nil
+}
+
+func VerifyToken(tokenStr string) (jwt.MapClaims, error) {
+	const op = "lib.jwt.VerifyToken"
+	// Parse the token
+	parsedToken, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("invalid signing method")
+		}
+
+		return []byte(os.Getenv("SECRET")), nil
+	})
+
+	if err != nil || !parsedToken.Valid {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	// Extract claims
+	if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok {
+		return claims, nil
+	}
+
+	return nil, fmt.Errorf("could not extract claims from token")
 }

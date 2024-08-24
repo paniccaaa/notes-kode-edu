@@ -28,12 +28,47 @@ func NewPostgres(dbURI string) (*Storage, error) {
 	return &Storage{Db: db}, nil
 }
 
-func (s *Storage) GetNotes(ctx context.Context) ([]models.Note, error) {
-	return nil, nil
+func (s *Storage) GetNotes(ctx context.Context, userID int64) ([]models.Note, error) {
+	const op = "storage.postgres.GetNotes"
+
+	notes := []models.Note{}
+	query := "SELECT * FROM notes WHERE user_id = $1;"
+
+	rows, err := s.Db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var n models.Note
+
+		if err := rows.Scan(&n.ID, &n.UserID, &n.Title, &n.Description); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		notes = append(notes, n)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return notes, nil
 }
 
 func (s *Storage) CreateNote(ctx context.Context, note models.Note) (int, error) {
-	return 0, nil
+	const op = "storage.postgres.CreateNote"
+
+	query := "INSERT INTO notes (user_id, title, description) VALUES ($1, $2, $3) returning id;"
+
+	var id int
+	if err := s.Db.QueryRowContext(ctx, query, note.UserID, note.Title, note.Description).Scan(&id); err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return id, nil
 }
 
 func (s *Storage) SaveUser(ctx context.Context, passHash []byte, email string) (int64, error) {
