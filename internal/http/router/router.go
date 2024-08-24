@@ -6,10 +6,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/paniccaaa/notes-kode-edu/internal/http/handlers/auth"
 	"github.com/paniccaaa/notes-kode-edu/internal/http/handlers/note"
 )
 
-func InitRouter(log *slog.Logger, noteService note.NoteService) http.Handler {
+func InitRouter(log *slog.Logger, noteService note.NoteService, authService auth.AuthService) http.Handler {
 	router := chi.NewRouter()
 
 	router.Use(middleware.Logger)
@@ -19,6 +20,12 @@ func InitRouter(log *slog.Logger, noteService note.NoteService) http.Handler {
 		r.Get("/", note.HandleGetNotes(log, noteService))
 
 		r.Post("/", note.HandleCreateNote(log, noteService))
+	})
+
+	router.Group(func(r chi.Router) {
+		r.Post("/login", auth.HandleLogin(log, authService))
+
+		r.Post("/register", auth.HandleRegister(log, authService))
 	})
 
 	return router
