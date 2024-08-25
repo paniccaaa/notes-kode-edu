@@ -58,17 +58,19 @@ func (s *Storage) GetNotes(ctx context.Context, userID int64) ([]models.Note, er
 	return notes, nil
 }
 
-func (s *Storage) CreateNote(ctx context.Context, note models.Note) (int, error) {
+func (s *Storage) CreateNote(ctx context.Context, note models.Note) (models.Note, error) {
 	const op = "storage.postgres.CreateNote"
 
 	query := "INSERT INTO notes (user_id, title, description) VALUES ($1, $2, $3) returning id;"
 
 	var id int
 	if err := s.Db.QueryRowContext(ctx, query, note.UserID, note.Title, note.Description).Scan(&id); err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
+		return models.Note{}, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return id, nil
+	note.ID = int64(id)
+
+	return note, nil
 }
 
 func (s *Storage) SaveUser(ctx context.Context, passHash []byte, email string) (int64, error) {

@@ -11,7 +11,7 @@ import (
 
 type NoteService interface {
 	GetNotes(ctx context.Context) ([]models.Note, error)
-	CreateNote(ctx context.Context, note models.Note) (int, error)
+	CreateNote(ctx context.Context, note models.Note) (models.Note, error)
 }
 
 func HandleGetNotes(log *slog.Logger, note NoteService) http.HandlerFunc {
@@ -23,12 +23,38 @@ func HandleGetNotes(log *slog.Logger, note NoteService) http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(&notes)
+		json.NewEncoder(w).Encode(notes)
 	}
+}
+
+// TODO
+
+type createNoteRequest struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
 }
 
 func HandleCreateNote(log *slog.Logger, note NoteService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("POST NOTES METHOD HERE"))
+		var req createNoteRequest
+
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "failed to decode body", http.StatusBadRequest)
+			return
+		}
+
+		n := models.Note{
+			Title:       req.Title,
+			Description: req.Description,
+		}
+
+		newNote, err := note.CreateNote(r.Context(), n)
+		if err != nil {
+			http.Error(w, "failed to create note", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(&newNote)
 	}
 }

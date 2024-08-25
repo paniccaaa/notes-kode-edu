@@ -12,7 +12,7 @@ import (
 
 type Storage interface {
 	GetNotes(ctx context.Context, userID int64) ([]models.Note, error)
-	CreateNote(ctx context.Context, note models.Note) (int, error)
+	CreateNote(ctx context.Context, note models.Note) (models.Note, error)
 }
 
 type NoteService struct {
@@ -49,6 +49,31 @@ func (s *NoteService) GetNotes(ctx context.Context) ([]models.Note, error) {
 	return notes, nil
 }
 
-func (s *NoteService) CreateNote(ctx context.Context, note models.Note) (int, error) {
-	return s.storage.CreateNote(ctx, note)
+// TODO: yandex.spellers
+func (s *NoteService) CreateNote(ctx context.Context, note models.Note) (models.Note, error) {
+	const op = "services.note-service.CreateNote"
+
+	log := s.log.With(slog.String("op", op))
+
+	var userClaims jwt.MapClaims
+	userClaims, ok := ctx.Value("userClaims").(jwt.MapClaims)
+	if !ok {
+		log.Error("failed to retrieve from ctx")
+
+		return models.Note{}, fmt.Errorf("%s: failed to retrieve from ctx", op)
+	}
+
+	userIDFloat := userClaims["uid"].(float64)
+	userID := int64(userIDFloat)
+
+	note.UserID = userID
+
+	note, err := s.storage.CreateNote(ctx, note)
+	if err != nil {
+		log.Error("failed to create note", slog.String("err", err.Error()))
+
+		return models.Note{}, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return note, nil
 }
