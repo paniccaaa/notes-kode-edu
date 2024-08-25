@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/paniccaaa/notes-kode-edu/internal/domain/models"
+	"github.com/paniccaaa/notes-kode-edu/internal/lib/spellcheck"
 )
 
 type NoteService interface {
@@ -34,6 +35,11 @@ type createNoteRequest struct {
 	Description string `json:"description"`
 }
 
+type spellCheckResponse struct {
+	Note   models.Note                             `json:"note"`
+	Errors map[string][]spellcheck.SpellerResponse `json:"errors"`
+}
+
 func HandleCreateNote(log *slog.Logger, note NoteService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req createNoteRequest
@@ -46,6 +52,32 @@ func HandleCreateNote(log *slog.Logger, note NoteService) http.HandlerFunc {
 		n := models.Note{
 			Title:       req.Title,
 			Description: req.Description,
+		}
+
+		texts := []string{n.Title, n.Description}
+
+		spell, err := spellcheck.CheckTexts(texts)
+		if err != nil {
+			http.Error(w, "failed to check text", http.StatusInternalServerError)
+			return
+		}
+
+		spellResponse := spellCheckResponse{
+			Note:   n,
+			Errors: map[string][]spellcheck.SpellerResponse{},
+		}
+
+		for i, text := range texts {
+			if len(spell[i]) > 0 {
+				spellResponse.Errors[text] = spell[i]
+			}
+		}
+
+		if len(spellResponse.Errors) > 0 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			json.NewEncoder(w).Encode(&spellResponse)
+			return
 		}
 
 		newNote, err := note.CreateNote(r.Context(), n)
