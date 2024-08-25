@@ -13,5 +13,19 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  app:
+    build:
+      context: .
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=notesdb
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    volumes:
+      - ./.env:/app/.env
+  
 volumes:
   postgres_data:

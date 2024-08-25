@@ -28,8 +28,6 @@ func HandleGetNotes(log *slog.Logger, note NoteService) http.HandlerFunc {
 	}
 }
 
-// TODO
-
 type createNoteRequest struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`

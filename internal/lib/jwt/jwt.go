@@ -30,7 +30,7 @@ func NewToken(user models.User, duration time.Duration) (string, error) {
 
 func VerifyToken(tokenStr string) (jwt.MapClaims, error) {
 	const op = "lib.jwt.VerifyToken"
-	// Parse the token
+
 	parsedToken, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("invalid signing method")
@@ -43,7 +43,6 @@ func VerifyToken(tokenStr string) (jwt.MapClaims, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	// Extract claims
 	if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok {
 		return claims, nil
 	}

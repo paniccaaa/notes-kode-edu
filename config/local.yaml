@@ -1,5 +1,8 @@
 env: "local" #local, dev, prod
-db_uri: "postgres://user:password@localhost:5432/notesdb?sslmode=disable"
+# For docker:
+db_uri: "postgres://user:password@db:5432/notesdb?sslmode=disable"
+# For local dev: 
+# db_uri: "postgres://user:password@localhost:5432/notesdb?sslmode=disable"
 token_ttl: 5h
 http_server:
   address: "0.0.0.0:8080"

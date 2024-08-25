@@ -49,7 +49,6 @@ func (s *NoteService) GetNotes(ctx context.Context) ([]models.Note, error) {
 	return notes, nil
 }
 
-// TODO: yandex.spellers
 func (s *NoteService) CreateNote(ctx context.Context, note models.Note) (models.Note, error) {
 	const op = "services.note-service.CreateNote"
 
