@@ -80,7 +80,7 @@ func (s *Storage) SaveUser(ctx context.Context, passHash []byte, email string) (
 	query := "INSERT INTO users (email, pass_hash) VALUES ($1, $2) RETURNING id"
 
 	if err := s.Db.QueryRowContext(ctx, query, email, passHash).Scan(&id); err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
+		return 0, fmt.Errorf("%s: %w", "user already exists", err)
 	}
 
 	return id, nil
@@ -93,7 +93,8 @@ func (s *Storage) User(ctx context.Context, email string) (models.User, error) {
 
 	row := s.Db.QueryRowContext(ctx, "SELECT * FROM users WHERE email = $1;", email)
 	if err := row.Scan(&user.ID, &user.Email, &user.PassHash); err != nil {
-		return models.User{}, fmt.Errorf("%s: %w", op, err)
+		return models.User{}, fmt.Errorf("%s: %w", "user not found", err)
 	}
+
 	return user, nil
 }

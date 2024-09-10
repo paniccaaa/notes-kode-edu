@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/paniccaaa/notes-kode-edu/internal/config"
@@ -55,7 +54,7 @@ func main() {
 	log.Info("server started")
 
 	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(done, os.Interrupt)
 
 	<-done
 	log.Info("stopping server")

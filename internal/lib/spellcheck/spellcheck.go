@@ -20,6 +20,7 @@ func CheckTexts(texts []string) ([][]SpellerResponse, error) {
 	apiURL := "https://speller.yandex.net/services/spellservice.json/checkTexts"
 
 	data := url.Values{}
+	// add text to params
 	for _, text := range texts {
 		data.Add("text", text)
 	}

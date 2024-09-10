@@ -10,7 +10,6 @@ import (
 	"github.com/paniccaaa/notes-kode-edu/internal/domain/models"
 	"github.com/paniccaaa/notes-kode-edu/internal/lib/jwt"
 	"github.com/paniccaaa/notes-kode-edu/internal/storage"
-	"github.com/paniccaaa/notes-kode-edu/internal/storage/postgres"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -25,7 +24,7 @@ type AuthService struct {
 	tokenTTL time.Duration
 }
 
-func NewAuthService(storage *postgres.Storage, log *slog.Logger, tokenTTL time.Duration) *AuthService {
+func NewAuthService(storage Storage, log *slog.Logger, tokenTTL time.Duration) *AuthService {
 	return &AuthService{storage: storage, log: log, tokenTTL: tokenTTL}
 }
 
